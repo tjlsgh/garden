@@ -36,14 +36,14 @@ void Mqtt_SendHeatbeat(void)
 }
 
 // 封装数据
-void Packet_Data(DHT11_Data_TypeDef *DHT11_Data, unsigned int LightLux, double soilHumidity)
+void Packet_Data(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float soilHumidity)
 {
 	sprintf(mqtt_message,
 				"{\"method\":\"thing.event.property.post\",\"id\":630262306,\"params\":{\
 					\"EnvTemperature\": %d.%d,\
 					\"EnvHumidity\":%d.%d,\
-					\"LightLux\":%d,\
-					\"soilHumidity\":%.3f\
+					\"LightLux\":%.2f,\
+					\"soilHumidity\":%.2f\
 					},\"version\":\"1.0\"}",
 					DHT11_Data->temp_int,DHT11_Data->temp_deci,
 					DHT11_Data->humi_int,DHT11_Data->humi_int,
@@ -51,7 +51,7 @@ void Packet_Data(DHT11_Data_TypeDef *DHT11_Data, unsigned int LightLux, double s
 	);
 }
 // 发布
-int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, unsigned int LightLux, double soilHumidity)
+int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float soilHumidity)
 {
 		//unsigned char buf[250] = {0};
 		Packet_Data(DHT11_Data, LightLux, soilHumidity);

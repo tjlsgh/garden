@@ -60,3 +60,4 @@
 ..\..\output\main.o: ..\..\User\wifi\wifi.h
 ..\..\output\main.o: ..\..\User\mqtt\mqtt.h
 ..\..\output\main.o: ..\..\User\dht11\bsp_dht11.h
+..\..\output\main.o: ..\..\User\adc\bsp_adc.h

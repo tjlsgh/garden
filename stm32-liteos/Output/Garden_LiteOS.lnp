@@ -36,6 +36,7 @@
 "..\..\output\wifi.o"
 "..\..\output\mqtt.o"
 "..\..\output\delay.o"
+"..\..\output\bsp_adc.o"
 "..\..\output\cmsis_liteos.o"
 "..\..\output\los_priqueue.o"
 "..\..\output\los_swtmr.o"

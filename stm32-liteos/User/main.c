@@ -10,6 +10,7 @@
 #include "wifi.h"
 #include "mqtt.h"
 #include "bsp_dht11.h"
+#include "bsp_adc.h"
 
 /********************************** 任务句柄 *************************************/
 /* 定义任务句柄 */
@@ -254,6 +255,9 @@ static void Key_Task(void)
 static void Read_Publish_Task(void)
 {	
 	DHT11_Data_TypeDef DHT11_Data;
+	extern __IO uint16_t ADC_ConvertedValue[NOFCHANEL];
+	ADC_Data_TypeDef ADC_Data;
+	
 	char mqtt_message[200];
 	/* 任务都是一个无限循环，不能返回 */
 	while(1)
@@ -261,14 +265,18 @@ static void Read_Publish_Task(void)
 		LED1_TOGGLE;			//LED翻转
 		if( DHT11_Read_TempAndHumidity ( &DHT11_Data ) == SUCCESS)
 		{
-			printf("\r\n读取DHT11成功!\r\n\r\n湿度为%d.%d ％RH ，温度为 %d.%d℃ \r\n",\
+			printf("\r\n 环境湿度为%d.%d ％RH ，环境温度为 %d.%d℃ \r\n",\
 			DHT11_Data.humi_int,DHT11_Data.humi_deci,DHT11_Data.temp_int,DHT11_Data.temp_deci);
 		}			
 		else
 		{
 				printf("Read DHT11 ERROR!\r\n");
 		}
-		Mqtt_Publish(&DHT11_Data, 33, 25.6);
+		ADC_Data.light = (-((float)ADC_ConvertedValue[0] /100) + 45)*3;
+		ADC_Data.soil = (-((float)ADC_ConvertedValue[1] /100) + 45)*3;	
+		Mqtt_Publish(&DHT11_Data, ADC_Data.light, ADC_Data.soil);
+		printf("\r\n 光强为%.2f LUX，土壤湿度为 %.2f \r\n",\
+		ADC_Data.light, ADC_Data.soil);
 		LOS_TaskDelay(5000); // 每秒读取一次
 	}
 }
@@ -293,10 +301,12 @@ static void BSP_Init(void)
 
   /* 按键初始化 */
 	Key_GPIO_Config();
-	
+  /* 按键初始化 */
 	DHT11_Init ();
-	
+  /* esp8266初始化 */	
 	ESP8266_Init();
+  /* 读取土壤湿度传感器和光敏传感器 */	
+	ADCx_Init();
 }
 
 

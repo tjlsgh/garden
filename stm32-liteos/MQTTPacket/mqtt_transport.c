@@ -1,5 +1,4 @@
 #include "mqtt_transport.h"
-#include "los_sys.h"
 #include "bsp_esp8266.h"
 
 void WiFi_SendString(UINT8* str,UINT8 buflen)

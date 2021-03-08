@@ -339,7 +339,7 @@
               <MiscControls>--diag_suppress=1,47,177,186,223,1295</MiscControls>
               <Define>STM32F10X_HD, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS;..\..\Libraries\CMSIS\Include;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\led;..\..\LiteOS\arch\arm\arm-m\cortex-m3;..\..\LiteOS\arch\arm\arm-m\include;..\..\LiteOS\cmsis\1.0;..\..\LiteOS\cmsis\2.0;..\..\LiteOS\cmsis;..\..\LiteOS\kernel\include;..\..\LiteOS\kernel\base\include;..\..\LiteOS\kernel\extended\include;..\..\LiteOS\OS_CONFIG;..\..\User\Key;..\..\User\usart;..\..\User\Common;..\..\User\dht11;..\..\User\ESP8266;..\..\User\wifi;..\..\MQTTPacket\src;..\..\MQTTPacket;..\..\User\mqtt;..\..\User\dht11;..\..\User\delay</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS;..\..\Libraries\CMSIS\Include;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\led;..\..\LiteOS\arch\arm\arm-m\cortex-m3;..\..\LiteOS\arch\arm\arm-m\include;..\..\LiteOS\cmsis\1.0;..\..\LiteOS\cmsis\2.0;..\..\LiteOS\cmsis;..\..\LiteOS\kernel\include;..\..\LiteOS\kernel\base\include;..\..\LiteOS\kernel\extended\include;..\..\LiteOS\OS_CONFIG;..\..\User\Key;..\..\User\usart;..\..\User\Common;..\..\User\dht11;..\..\User\ESP8266;..\..\User\wifi;..\..\MQTTPacket\src;..\..\MQTTPacket;..\..\User\mqtt;..\..\User\dht11;..\..\User\delay;..\..\User\adc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -607,6 +607,11 @@
               <FileName>delay.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\delay\delay.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\adc\bsp_adc.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -14,8 +14,7 @@
 
 void 	Mqtt_Connect(void);
 void Mqtt_SendHeatbeat(void);
-int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, unsigned int LightLux, double soilHumidity);
+int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float soilHumidity);
 int Mqtt_Subscribe(char *pTopic);
-int Mqtt_Publish1(DHT11_Data_TypeDef *DHT11_Data, unsigned int LightLux, double soilHumidity);
 #endif
 
