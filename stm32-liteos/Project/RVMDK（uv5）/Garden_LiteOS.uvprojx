@@ -339,7 +339,7 @@
               <MiscControls>--diag_suppress=1,47,177,186,223,1295</MiscControls>
               <Define>STM32F10X_HD, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS;..\..\Libraries\CMSIS\Include;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\led;..\..\LiteOS\arch\arm\arm-m\cortex-m3;..\..\LiteOS\arch\arm\arm-m\include;..\..\LiteOS\cmsis\1.0;..\..\LiteOS\cmsis\2.0;..\..\LiteOS\cmsis;..\..\LiteOS\kernel\include;..\..\LiteOS\kernel\base\include;..\..\LiteOS\kernel\extended\include;..\..\LiteOS\OS_CONFIG;..\..\User\Key;..\..\User\usart;..\..\User\Common;..\..\User\dht11;..\..\User\ESP8266;..\..\User\wifi;..\..\MQTTPacket\src;..\..\MQTTPacket;..\..\User\mqtt;..\..\User\dht11;..\..\User\delay;..\..\User\adc</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS;..\..\Libraries\CMSIS\Include;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\led;..\..\LiteOS\arch\arm\arm-m\cortex-m3;..\..\LiteOS\arch\arm\arm-m\include;..\..\LiteOS\cmsis\1.0;..\..\LiteOS\cmsis\2.0;..\..\LiteOS\cmsis;..\..\LiteOS\kernel\include;..\..\LiteOS\kernel\base\include;..\..\LiteOS\kernel\extended\include;..\..\LiteOS\OS_CONFIG;..\..\User\Key;..\..\User\usart;..\..\User\Common;..\..\User\dht11;..\..\User\ESP8266;..\..\User\wifi;..\..\MQTTPacket\src;..\..\MQTTPacket;..\..\User\mqtt;..\..\User\dht11;..\..\User\delay;..\..\User\adc;..\..\CJson;..\..\User\lamp;..\..\User\relay</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -613,6 +613,21 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\adc\bsp_adc.c</FilePath>
             </File>
+            <File>
+              <FileName>main2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\main2.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_lamp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\lamp\bsp_lamp.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_relay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\relay\bsp_relay.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -772,6 +787,13 @@
         </Group>
         <Group>
           <GroupName>DOC</GroupName>
+          <Files>
+            <File>
+              <FileName>readme.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Doc\readme.txt</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Mqtt</GroupName>
@@ -835,6 +857,16 @@
               <FileName>mqtt_transport.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\MQTTPacket\mqtt_transport.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>CJSON</GroupName>
+          <Files>
+            <File>
+              <FileName>cJSON.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\CJson\cJSON.c</FilePath>
             </File>
           </Files>
         </Group>

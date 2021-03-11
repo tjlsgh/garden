@@ -31,31 +31,33 @@
 #include <string.h> 
 #include "wifi.h"
 #include "bsp_usart.h"
+#include "los_sem.h"
+#include "los_queue.h"
+#include "mqtt.h"
+
 //#include "bsp_SysTick.h"
 
 void macESP8266_USART_INT_FUN ( void )
 {	
-	uint8_t ucCh;
+	UINTPTR uvIntSave;
+	uvIntSave = LOS_IntLock();		//关中断
 	
+	uint8_t ucCh;
 	if ( USART_GetITStatus ( macESP8266_USARTx, USART_IT_RXNE ) != RESET )
 	{
 		ucCh  = USART_ReceiveData( macESP8266_USARTx );
-		
 		if ( strEsp8266_Fram_Record .InfBit .FramLength < ( RX_BUF_MAX_LEN - 1 ) )                       //预留1个字节写结束符
-			   strEsp8266_Fram_Record .Data_RX_BUF [ strEsp8266_Fram_Record .InfBit .FramLength ++ ]  = ucCh;
-
-	}
-	 	 
+			strEsp8266_Fram_Record .Data_RX_BUF [ strEsp8266_Fram_Record .InfBit .FramLength ++ ]  = ucCh;
+		//printf("%c", ucCh);
+	} 
 	if ( USART_GetITStatus( macESP8266_USARTx, USART_IT_IDLE ) == SET )                                         //数据帧接收完毕
 	{
     strEsp8266_Fram_Record .InfBit .FramFinishFlag = 1;
-		
-		ucCh = USART_ReceiveData( macESP8266_USARTx );                                                              //由软件序列清除中断标志位(先读USART_SR，然后读USART_DR)
-	
+		ucCh = USART_ReceiveData( macESP8266_USARTx );                //由软件序列清除中断标志位(先读USART_SR，然后读USART_DR)
 		ucTcpClosedFlag = strstr ( strEsp8266_Fram_Record .Data_RX_BUF, "CLOSED\r\n" ) ? 1 : 0;
-		
-  }	
-
+  }
+	
+	LOS_IntRestore(uvIntSave);	//开中断
 }
 
 //void SysTick_Handler(void)

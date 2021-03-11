@@ -37,6 +37,9 @@
 "..\..\output\mqtt.o"
 "..\..\output\delay.o"
 "..\..\output\bsp_adc.o"
+"..\..\output\main2.o"
+"..\..\output\bsp_lamp.o"
+"..\..\output\bsp_relay.o"
 "..\..\output\cmsis_liteos.o"
 "..\..\output\los_priqueue.o"
 "..\..\output\los_swtmr.o"
@@ -74,6 +77,7 @@
 "..\..\output\mqttunsubscribeserver.o"
 "..\..\output\transport.o"
 "..\..\output\mqtt_transport.o"
+"..\..\output\cjson.o"
 --library_type=microlib --strict --scatter "..\..\Output\Garden_LiteOS.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

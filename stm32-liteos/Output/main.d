@@ -51,6 +51,7 @@
 ..\..\output\main.o: ..\..\LiteOS\arch\arm\arm-m\include\los_hw.h
 ..\..\output\main.o: ..\..\LiteOS\kernel\include\los_tick.h
 ..\..\output\main.o: ..\..\LiteOS\kernel\include\los_event.h
+..\..\output\main.o: ..\..\LiteOS\kernel\include\los_queue.h
 ..\..\output\main.o: ..\..\User\usart\bsp_usart.h
 ..\..\output\main.o: ..\..\User\led\bsp_led.h
 ..\..\output\main.o: ..\..\User\Key\bsp_key.h
@@ -61,3 +62,5 @@
 ..\..\output\main.o: ..\..\User\mqtt\mqtt.h
 ..\..\output\main.o: ..\..\User\dht11\bsp_dht11.h
 ..\..\output\main.o: ..\..\User\adc\bsp_adc.h
+..\..\output\main.o: ..\..\User\lamp\bsp_lamp.h
+..\..\output\main.o: ..\..\User\relay\bsp_relay.h

@@ -8,6 +8,7 @@ unsigned char buf[300];
 char mqtt_message[300];
 //unsigned int buflen = sizeof(buf)/sizeof(buf[0]);
 unsigned int buflen = sizeof(buf);
+volatile bool mqtt_receive_data_flag = false;
 
 // mqtt连接
 void Mqtt_Connect(void)
@@ -36,25 +37,25 @@ void Mqtt_SendHeatbeat(void)
 }
 
 // 封装数据
-void Packet_Data(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float soilHumidity)
+void Packet_Data(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float SoilHumidity)
 {
 	sprintf(mqtt_message,
 				"{\"method\":\"thing.event.property.post\",\"id\":630262306,\"params\":{\
 					\"EnvTemperature\": %d.%d,\
 					\"EnvHumidity\":%d.%d,\
 					\"LightLux\":%.2f,\
-					\"soilHumidity\":%.2f\
+					\"SoilHumidity\":%.2f\
 					},\"version\":\"1.0\"}",
 					DHT11_Data->temp_int,DHT11_Data->temp_deci,
 					DHT11_Data->humi_int,DHT11_Data->humi_int,
-					LightLux,soilHumidity
+					LightLux,SoilHumidity
 	);
 }
 // 发布
-int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float soilHumidity)
+int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float SoilHumidity)
 {
 		//unsigned char buf[250] = {0};
-		Packet_Data(DHT11_Data, LightLux, soilHumidity);
+		Packet_Data(DHT11_Data, LightLux, SoilHumidity);
 		MQTTString topicString = MQTTString_initializer;
 		int msglen = strlen(mqtt_message);
 		int buflen = sizeof(buf);
@@ -80,14 +81,24 @@ int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float soilHumid
 //}
 
 // 订阅
-int Mqtt_Subscribe(char *pTopic)
+int Mqtt_Subscribe()
 {
     int32_t len;
     MQTTString topicString = MQTTString_initializer;
     int buflen = sizeof(buf);
     memset(buf,0,buflen);
-    topicString.cstring = pTopic;//
+		// 订阅补光事件
+    topicString.cstring = MQTT_TOPIC_FillLight;
+    len = MQTTSerialize_subscribe(buf, buflen, 0, 1, 1, &topicString, 0);
+		transport_sendPacketBuffer(buf, len);
+		// 订阅浇水事件
+		topicString.cstring = MQTT_TOPIC_sprink;
     len = MQTTSerialize_subscribe(buf, buflen, 0, 1, 1, &topicString, 0);
 		transport_sendPacketBuffer(buf, len);
     return 0;
 }
+
+//bool Mqtt_IsReceived()
+//{
+//	return mqtt_receive_data_flag;
+//}

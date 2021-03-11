@@ -130,6 +130,8 @@ void                     ESP8266_ExitUnvarnishSend           ( void );
 bool                     ESP8266_SendString                  ( FunctionalState enumEnUnvarnishTx, char * pStr, u32 ulStrLength, ENUM_ID_NO_TypeDef ucId );
 char *                   ESP8266_ReceiveString               ( FunctionalState enumEnUnvarnishTx );
 
+bool 										 Esp8266_Receive_Data								 ();
+
 
 
 #endif

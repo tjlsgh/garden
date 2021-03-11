@@ -32,6 +32,7 @@
 ..\..\output\mqtt.o: ..\..\Libraries\FWlib\inc\stm32f10x_wwdg.h
 ..\..\output\mqtt.o: ..\..\Libraries\FWlib\inc\misc.h
 ..\..\output\mqtt.o: ..\..\User\dht11\bsp_dht11.h
+..\..\output\mqtt.o: D:\KEIL5\ARM\ARMCC\Bin\..\include\stdbool.h
 ..\..\output\mqtt.o: ..\..\MQTTPacket\mqtt_transport.h
 ..\..\output\mqtt.o: ..\..\LiteOS\kernel\include\los_sys.h
 ..\..\output\mqtt.o: ..\..\LiteOS\kernel\include\los_base.h
@@ -60,4 +61,3 @@
 ..\..\output\mqtt.o: ..\..\MQTTPacket\src\MQTTPacket.h
 ..\..\output\mqtt.o: ..\..\User\ESP8266\bsp_esp8266.h
 ..\..\output\mqtt.o: ..\..\User\Common\common.h
-..\..\output\mqtt.o: D:\KEIL5\ARM\ARMCC\Bin\..\include\stdbool.h

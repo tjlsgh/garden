@@ -12,11 +12,8 @@ static void                   ESP8266_GPIO_Config                 ( void );
 static void                   ESP8266_USART_Config                ( void );
 static void                   ESP8266_USART_NVIC_Configuration    ( void );
 
-
-
 struct  STRUCT_USARTx_Fram strEsp8266_Fram_Record = { 0 };
 struct  STRUCT_USARTx_Fram strUSART_Fram_Record = { 0 };
-
 
 /**
   * @brief  ESP8266³õÊ¼»¯º¯Êý
@@ -625,7 +622,10 @@ char * ESP8266_ReceiveString ( FunctionalState enumEnUnvarnishTx )
 			pRecStr = strEsp8266_Fram_Record .Data_RX_BUF;
 
 	}
-
 	return pRecStr;
-	
+}
+
+bool Esp8266_Receive_Data()
+{
+	return strEsp8266_Fram_Record.InfBit.FramFinishFlag;
 }
