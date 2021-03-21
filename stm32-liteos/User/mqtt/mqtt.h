@@ -20,6 +20,7 @@ void 		Mqtt_SendHeatbeat(void);
 int 		Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float soilHumidity);
 int 		Mqtt_Subscribe();
 bool 		Mqtt_IsReceived();
+int     Mqtt_Publish2(unsigned int Lamp_State, unsigned int Water_State);
 
 extern volatile bool mqtt_receive_data_flag;
 int str_search(const char*dststr, const char**srcstr, int num);

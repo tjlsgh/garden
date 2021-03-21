@@ -21,9 +21,9 @@ UINT32 Connect_Init_Task_Handle;
 UINT32 Read_Publish_Task_Handle;
 UINT32 Mqtt_SendHeatbeat_Task_Handle;
 UINT32 Subscribe_React_Task_Handle;
-UINT32 Execute_FillLight_Handle;
-UINT32 Execute_Sprink_Handle;
-
+UINT32 Execute_FillLight_Task_Handle;
+UINT32 Execute_Sprink_Task_Handle;
+UINT32 Monitor_Task_Handle;
 /********************************** 函数声明 *************************************/
 static UINT32 AppTaskCreate(void);
 static UINT32 Create_Key_Task(void);
@@ -33,8 +33,8 @@ static UINT32 Create_Mqtt_SendHeatbeat_Task(void);
 static UINT32 Create_Subscribe_React_Task(void);
 static UINT32 Create_Execute_FillLight_Task(void);
 static UINT32 Create_Execute_Sprink_Task(void);
+static UINT32 Create_Monitor_Task(void);
 
-static void BSP_Init(void);
 static void Key_Task(void);
 static void Connect_Init_Task(void);
 static void Read_Publish_Task(void);
@@ -42,8 +42,12 @@ static void Mqtt_SendHeatbeat_Task(void);
 static void Subscribe_React_Task(void);
 static void Execute_FillLight_Task(void);
 static void Execute_Sprink_Task(void);
+static void Monitor_Task(void);
+
+static void BSP_Init(void);
 static void Call_Service(UINT8 type, UINT8 len);
-	
+static void Sensor_Data_Monitor(UINT8 temp,UINT8 humi, FLOAT light, FLOAT soil);
+
  /* 定义消息队列的句柄 */
 UINT32 Lamp_Queue_Handle;
 UINT32 Water_Queue_Handle;
@@ -56,7 +60,12 @@ UINT32 Water_Queue_Handle;
 #define FILL_LIGHT 4
 #define SPRINK 5
 
-UINT32 receive_data = 0;
+extern __IO uint16_t ADC_ConvertedValue[NOFCHANEL];
+DHT11_Data_TypeDef DHT11_Data;
+ADC_Data_TypeDef ADC_Data;
+UINT32 Lamp_State = 0;
+UINT32 Water_State = 0;
+UINT8 Cloud_Cmd = 0;
 /***************************************************************
   * @brief  主函数
   * @param  无
@@ -154,6 +163,12 @@ static UINT32 AppTaskCreate(void)
 		printf("Execute_Task任务创建失败！失败代码0x%X\n",uwRet);
 		return uwRet;
   }
+	uwRet = Create_Monitor_Task();
+	  if (uwRet != LOS_OK)
+  {
+		printf("Monitor_Task任务创建失败！失败代码0x%X\n",uwRet);
+		return uwRet;
+  }
 	return LOS_OK;
 }
 
@@ -171,7 +186,7 @@ static UINT32 Create_Connect_Init_Task()
 	//定义一个用于创建任务的参数结构体
 	TSK_INIT_PARAM_S task_init_param;	
 
-	task_init_param.usTaskPrio = 1;	/* 任务优先级，数值越小，优先级越高 */
+	task_init_param.usTaskPrio = 2;	/* 任务优先级，数值越小，优先级越高 */
 	task_init_param.pcName = "Connect_Init_Task";/* 任务名 */
 	task_init_param.pfnTaskEntry = (TSK_ENTRY_FUNC)Connect_Init_Task;/* 任务函数入口 */
 	task_init_param.uwStackSize = 1024;		/* 堆栈大小 */
@@ -185,7 +200,7 @@ static UINT32 Create_Key_Task()
 	UINT32 uwRet = LOS_OK;				
 	TSK_INIT_PARAM_S task_init_param;
 
-	task_init_param.usTaskPrio = 4;	/* 任务优先级，数值越小，优先级越高 */
+	task_init_param.usTaskPrio = 6;	/* 任务优先级，数值越小，优先级越高 */
 	task_init_param.pcName = "Key_Task";	/* 任务名*/
 	task_init_param.pfnTaskEntry = (TSK_ENTRY_FUNC)Key_Task;/* 任务函数入口 */
 	task_init_param.uwStackSize = 1024;	/* 堆栈大小 */
@@ -200,7 +215,7 @@ static UINT32 Create_Read_Publish_Task()
 	UINT32 uwRet = LOS_OK;				
 	TSK_INIT_PARAM_S task_init_param;
 
-	task_init_param.usTaskPrio = 2;	/* 任务优先级，数值越小，优先级越高 */
+	task_init_param.usTaskPrio = 3;	/* 任务优先级，数值越小，优先级越高 */
 	task_init_param.pcName = "Read_Publish_Task";	/* 任务名*/
 	task_init_param.pfnTaskEntry = (TSK_ENTRY_FUNC)Read_Publish_Task;/* 任务函数入口 */
 	task_init_param.uwStackSize = 1024;	/* 堆栈大小 */
@@ -250,7 +265,7 @@ static UINT32 Create_Execute_FillLight_Task(void)
 	task_init_param.pfnTaskEntry = (TSK_ENTRY_FUNC)Execute_FillLight_Task;/* 任务函数入口 */
 	task_init_param.uwStackSize = 1024;	/* 堆栈大小 */
 	
-	uwRet = LOS_TaskCreate(&Execute_FillLight_Handle, &task_init_param);/* 创建任务 */
+	uwRet = LOS_TaskCreate(&Execute_FillLight_Task_Handle, &task_init_param);/* 创建任务 */
 
 	return uwRet;
 }
@@ -265,8 +280,25 @@ static UINT32 Create_Execute_Sprink_Task(void)
 	task_init_param.pfnTaskEntry = (TSK_ENTRY_FUNC)Execute_Sprink_Task;/* 任务函数入口 */
 	task_init_param.uwStackSize = 1024;	/* 堆栈大小 */
 	
-	uwRet = LOS_TaskCreate(&Execute_Sprink_Handle, &task_init_param);/* 创建任务 */
+	uwRet = LOS_TaskCreate(&Execute_Sprink_Task_Handle, &task_init_param);/* 创建任务 */
 
+	return uwRet;
+}
+
+static UINT32 Create_Monitor_Task()
+{
+	//定义一个创建任务的返回类型，初始化为创建成功的返回值
+	UINT32 uwRet = LOS_OK;			
+	
+	//定义一个用于创建任务的参数结构体
+	TSK_INIT_PARAM_S task_init_param;	
+
+	task_init_param.usTaskPrio = 4;	/* 任务优先级，数值越小，优先级越高 */
+	task_init_param.pcName = "Monitor_Task";/* 任务名 */
+	task_init_param.pfnTaskEntry = (TSK_ENTRY_FUNC)Monitor_Task;/* 任务函数入口 */
+	task_init_param.uwStackSize = 1024;		/* 堆栈大小 */
+
+	uwRet = LOS_TaskCreate(&Monitor_Task_Handle, &task_init_param);/* 创建任务 */
 	return uwRet;
 }
 /******************************************************************
@@ -361,15 +393,16 @@ static void Key_Task(void)
 
 static void Read_Publish_Task(void)
 {	
-	DHT11_Data_TypeDef DHT11_Data;
-	extern __IO uint16_t ADC_ConvertedValue[NOFCHANEL];
-	ADC_Data_TypeDef ADC_Data;
+//	DHT11_Data_TypeDef DHT11_Data;
+//	extern __IO uint16_t ADC_ConvertedValue[NOFCHANEL];
+//	ADC_Data_TypeDef ADC_Data;
 	
-	char mqtt_message[200];
+//	char mqtt_message[200];
 	/* 任务都是一个无限循环，不能返回 */
 	while(1)
 	{
 		LED1_TOGGLE;			//LED翻转
+//		
 //		if( DHT11_Read_TempAndHumidity ( &DHT11_Data ) == SUCCESS)
 //		{
 //			printf("\r\n 环境湿度为%d.%d ％RH ，环境温度为 %d.%d℃ \r\n",\
@@ -381,10 +414,17 @@ static void Read_Publish_Task(void)
 //		}
 //		ADC_Data.light = (-((float)ADC_ConvertedValue[0] /100) + 45)*3;
 //		ADC_Data.soil = (-((float)ADC_ConvertedValue[1] /100) + 45)*3;	
-//		Mqtt_Publish(&DHT11_Data, ADC_Data.light, ADC_Data.soil);
-//		printf("\r\n 光强为%.2f LUX，土壤湿度为 %.2f \r\n",\
-//		ADC_Data.light, ADC_Data.soil);
-		LOS_TaskDelay(5000); // 每秒读取一次
+		printf("\r\n 环境湿度为%d.%d ％RH ，环境温度为 %d.%d℃ \r\n",\
+						DHT11_Data.humi_int,DHT11_Data.humi_deci,DHT11_Data.temp_int,DHT11_Data.temp_deci);
+
+		printf("\r\n 光强为%.2f LUX，土壤湿度为 %.2f , 灯泡为 %d, 水泵为 %d \r\n",\
+						ADC_Data.light, ADC_Data.soil, Lamp_State, Water_State);
+		Mqtt_Publish(&DHT11_Data, ADC_Data.light, ADC_Data.soil);
+		LOS_TaskDelay(1000);
+		Mqtt_Publish2(Lamp_State, Water_State);	
+//		Sensor_Data_Monitor(DHT11_Data.temp_int, DHT11_Data.humi_int, ADC_Data.light, ADC_Data.soil);
+		
+		LOS_TaskDelay(2000); // 每3秒读取一次
 	}
 }
 
@@ -402,13 +442,13 @@ static void Subscribe_React_Task(void)
 	{
 		//UINTPTR uvIntSave;
 		//uvIntSave = LOS_IntLock();		//关中断
-		LED2_TOGGLE;
+
 		// 处理数据
 		if(strEsp8266_Fram_Record .InfBit .FramFinishFlag)
 		{
 			strEsp8266_Fram_Record.Data_RX_BUF[strEsp8266_Fram_Record.InfBit.FramLength] = '\0';
 			printf("\r\n len : %d\r\n",strEsp8266_Fram_Record.InfBit.FramLength);
-			for(i=100;i< strEsp8266_Fram_Record.InfBit.FramLength;i++)
+			for(i=0;i< strEsp8266_Fram_Record.InfBit.FramLength;i++)
 			{
 				printf("%c",strEsp8266_Fram_Record.Data_RX_BUF[i]);
 			}
@@ -455,11 +495,14 @@ static void Execute_FillLight_Task(void)
 			if(*command == 0) 
 			{
 				LAMP_OFF;
-				printf("\r\n灯灭\n");
+				Lamp_State = 0;
+				Cloud_Cmd = 0;
+				printf("\r\n灯泡灭\n");
 			}else if(*command > 0)
 			{
 				LAMP_ON;
-				printf("\r\n灯亮\n");
+				Lamp_State = 1;
+				printf("\r\n灯泡亮\n");
 			}
 		}
 		else
@@ -487,11 +530,14 @@ static void Execute_Sprink_Task(void)
 			if(*command == 0) 
 			{
 				RELAY_OFF;
-				printf("\r\n水停\n");
+				Water_State = 0;
+				printf("\r\n水泵关 Water_State = 0\n");
+				Cloud_Cmd = 0;
 			}else if(*command > 0)
 			{
 				RELAY_ON;
-				printf("\r\n水开\n");
+				Water_State = 1;
+				printf("\r\n水泵开 Water_State = 1\n");
 			}
 		}
 		else
@@ -499,6 +545,34 @@ static void Execute_Sprink_Task(void)
 			printf("数据接收出错,错误代码0x%X\n",uwRet);
 		}
 		LOS_TaskDelay(500); 
+	}
+}
+
+static void Monitor_Task(void) 
+{
+
+	while(1)
+	{
+//		if( DHT11_Read_TempAndHumidity ( &DHT11_Data ) == SUCCESS)
+//		{
+//			printf("\r\n 环境湿度为%d.%d ％RH ，\
+//									 环境温度为 %d.%d℃ \r\n",\
+//							DHT11_Data.humi_int,DHT11_Data.humi_deci,
+//							DHT11_Data.temp_int,DHT11_Data.temp_deci);
+//		}			
+//		else
+//		{
+//				printf("Read DHT11 ERROR!\r\n");
+//		}
+		DHT11_Read_TempAndHumidity ( &DHT11_Data );
+		ADC_Data.light = (-((float)ADC_ConvertedValue[0] /100) + 45)*3;
+		ADC_Data.soil = (-((float)ADC_ConvertedValue[1] /100) + 45)*3;	
+//		printf("\r\n 光强为%.2f LUX，土壤湿度为 %.2f \r\n",\
+//						ADC_Data.light, ADC_Data.soil);
+		
+		Sensor_Data_Monitor(DHT11_Data.temp_int, DHT11_Data.humi_int, ADC_Data.light, ADC_Data.soil);
+		
+		LOS_TaskDelay(1000); // 每500ms读取一次
 	}
 }
 /*******************************************************************
@@ -541,25 +615,61 @@ static void Call_Service(UINT8 type, UINT8 len)
 	UINT32 uwRet = LOS_OK;		
 	UINT32 send_data = 3;
 	// 这个才是需要的数据
-	printf("\r\n receive data: %c ", strEsp8266_Fram_Record.Data_RX_BUF[len + type + 2]);
-
+	//printf("\r\n receive data: %c ", strEsp8266_Fram_Record.Data_RX_BUF[len + type + 2]);
+	Cloud_Cmd = 1;
 	send_data = (UINT32)strEsp8266_Fram_Record.Data_RX_BUF[len + type + 2] - 48;
 	// 发送到执行模块的消息队列
 	if(type == SPRINK)
 	{
 		uwRet = LOS_QueueWrite(	Water_Queue_Handle,	/* 写入（发送）队列的ID(句柄) */
-												&send_data,				/* 写入（发送）的数据 */
-												sizeof(send_data),	/* 数据的长度 */
-												0);									/* 等待时间为 0  */	
+														&send_data,				/* 写入（发送）的数据 */
+														sizeof(send_data),	/* 数据的长度 */
+														0);									/* 等待时间为 0  */	
 	}else if(type == FILL_LIGHT){
 		uwRet = LOS_QueueWrite(	Lamp_Queue_Handle,	/* 写入（发送）队列的ID(句柄) */
-												&send_data,				/* 写入（发送）的数据 */
-												sizeof(send_data),	/* 数据的长度 */
-												0);									/* 等待时间为 0  */			
+														&send_data,				/* 写入（发送）的数据 */
+														sizeof(send_data),	/* 数据的长度 */
+														0);									/* 等待时间为 0  */			
 	}
 	if(LOS_OK != uwRet)
 	{
 		printf("\r\n 数据不能发送到消息队列！错误代码0x%X\n",uwRet);
+	}
+}
+
+static void Sensor_Data_Monitor(UINT8 temp,UINT8 humi, FLOAT light, FLOAT soil)
+{
+	// 发送命令到执行模块
+	UINT32 monitor_send_data = 1;
+	if(soil < 20 && Water_State == 0 && Cloud_Cmd  == 0)
+	{
+		monitor_send_data = 1;
+		LOS_QueueWrite(	Water_Queue_Handle,	/* 写入（发送）队列的ID(句柄) */
+										&monitor_send_data,				/* 写入（发送）的数据 */
+										sizeof(monitor_send_data),	/* 数据的长度 */
+										0);
+	}else if(soil >60 && Water_State == 1)
+	{
+		monitor_send_data = 0;
+		LOS_QueueWrite(	Water_Queue_Handle,	/* 写入（发送）队列的ID(句柄) */
+										&monitor_send_data,				/* 写入（发送）的数据 */
+										sizeof(monitor_send_data),	/* 数据的长度 */
+										0);									/* 等待时间为 0  */	
+	}
+	if(light < 20 && Lamp_State == 0 && Cloud_Cmd  == 0)
+	{
+		monitor_send_data = 1;
+		LOS_QueueWrite(	Lamp_Queue_Handle,	/* 写入（发送）队列的ID(句柄) */
+										&monitor_send_data,				/* 写入（发送）的数据 */
+										sizeof(monitor_send_data),	/* 数据的长度 */
+										0);									/* 等待时间为 0  */		
+	}else if(light > 100 && Lamp_State == 1)
+	{
+		monitor_send_data = 0;
+		LOS_QueueWrite(	Lamp_Queue_Handle,	/* 写入（发送）队列的ID(句柄) */
+										&monitor_send_data,				/* 写入（发送）的数据 */
+										sizeof(monitor_send_data),	/* 数据的长度 */
+										0);									/* 等待时间为 0  */		
 	}
 }
 

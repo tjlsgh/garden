@@ -4,8 +4,8 @@
 #include "bsp_esp8266.h"
 #include "bsp_dht11.h"
 
-unsigned char buf[300];
-char mqtt_message[300];
+unsigned char buf[600];
+char mqtt_message[600];
 //unsigned int buflen = sizeof(buf)/sizeof(buf[0]);
 unsigned int buflen = sizeof(buf);
 volatile bool mqtt_receive_data_flag = false;
@@ -37,21 +37,44 @@ void Mqtt_SendHeatbeat(void)
 }
 
 // 封装数据
+void Packet_Data2(unsigned int Lamp_State, unsigned int Water_State)
+{
+	sprintf(mqtt_message,
+				"{\"method\":\"thing.event.property.post\",\"id\":630262306,\"params\":{\
+					\"LampState\":%d,\
+					\"WaterState\":%d\
+					},\"version\":\"1.0\"}",
+					Lamp_State, Water_State
+	);
+}
+// 发布
+int Mqtt_Publish2( unsigned int Lamp_State, unsigned int Water_State)
+{
+		//unsigned char buf[250] = {0};
+		Packet_Data2(Lamp_State, Water_State);
+		MQTTString topicString = MQTTString_initializer;
+		int msglen = strlen(mqtt_message);
+		int buflen = sizeof(buf);
+		memset(buf,0,buflen);
+		topicString.cstring = MQTT_PROPERTY_POST;
+		int32_t  len = MQTTSerialize_publish(buf, buflen, 0, 0, 0, 123, topicString, (unsigned char*)mqtt_message, msglen); 
+		transport_sendPacketBuffer(buf,len);
+		return 0;
+}
 void Packet_Data(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float SoilHumidity)
 {
 	sprintf(mqtt_message,
 				"{\"method\":\"thing.event.property.post\",\"id\":630262306,\"params\":{\
 					\"EnvTemperature\": %d.%d,\
 					\"EnvHumidity\":%d.%d,\
-					\"LightLux\":%.2f,\
-					\"SoilHumidity\":%.2f\
+					\"LightLux\":%.1f,\
+					\"SoilHumidity\":%.1f\
 					},\"version\":\"1.0\"}",
 					DHT11_Data->temp_int,DHT11_Data->temp_deci,
-					DHT11_Data->humi_int,DHT11_Data->humi_int,
+					DHT11_Data->humi_int,DHT11_Data->humi_deci,
 					LightLux,SoilHumidity
 	);
 }
-// 发布
 int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float SoilHumidity)
 {
 		//unsigned char buf[250] = {0};
@@ -65,6 +88,7 @@ int Mqtt_Publish(DHT11_Data_TypeDef *DHT11_Data, float LightLux, float SoilHumid
 		transport_sendPacketBuffer(buf,len);
 		return 0;
 }
+
 //// 发布
 //int Mqtt_Publish(char *pTopic,char *pMessage)
 //{
